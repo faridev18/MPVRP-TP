@@ -70,7 +70,7 @@ python main.py ../small/MPVRP_S_001_s9_d1_p2.dat
 python main.py ../small/MPVRP_S_001_s9_d1_p2.dat -o ../solutions/ma_solution.dat -t 120
 
 # Vérifier via l'API
-python main.py ../small/MPVRP_S_001_s9_d1_p2.dat --verify --api-url http://localhost:8000
+python main.py ../small/MPVRP_S_001_s9_d1_p2.dat --verify
 ```
 
 ### Résolution en batch
