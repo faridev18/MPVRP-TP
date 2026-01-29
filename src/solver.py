@@ -22,13 +22,13 @@ class MPVRPSolver:
     Solveur pour le problème MPVRP-CC utilisant OR-Tools.
     """
     
-    def __init__(self, instance: Instance, time_limit: int = 60):
+    def __init__(self, instance: Instance, time_limit: int = None):
         """
         Initialise le solveur.
         
         Args:
             instance: L'instance MPVRP-CC à résoudre
-            time_limit: Limite de temps en secondes pour la résolution
+            time_limit: Limite de temps en secondes (None = pas de limite)
         """
         self.instance = instance
         self.time_limit = time_limit
@@ -66,14 +66,20 @@ class MPVRPSolver:
         
         # Résoudre le problème produit par produit
         for product in range(self.instance.nb_products):
+            # Calculer le temps restant par produit (None = pas de limite)
+            if self.time_limit is not None:
+                time_per_product = max(1, int((self.time_limit - (time.time() - start_time)) // 
+                                              max(1, self.instance.nb_products - product)))
+            else:
+                time_per_product = None
+            
             self._solve_for_product_complete(
                 solution, 
                 product, 
                 remaining_demands, 
                 remaining_stocks,
                 vehicle_usage,
-                time_limit_per_product=max(1, int((self.time_limit - (time.time() - start_time)) // 
-                                          max(1, self.instance.nb_products - product)))
+                time_limit_per_product=time_per_product
             )
         
         # Calculer les métriques finales
@@ -140,10 +146,15 @@ class MPVRPSolver:
             ]
             
             if not depots_with_stock:
-                print(f"⚠️ Pas assez de stock pour le produit {product+1}")
+                print(f"[ATTENTION] Pas assez de stock pour le produit {product+1}")
                 break
             
             # Résoudre une itération du VRP
+            # Calculer le temps par itération (None = pas de limite)
+            iteration_time_limit = None
+            if time_limit_per_product is not None:
+                iteration_time_limit = time_limit_per_product // max(1, 10)
+            
             deliveries_made = self._solve_vrp_iteration(
                 solution, 
                 product, 
@@ -152,7 +163,7 @@ class MPVRPSolver:
                 remaining_demands, 
                 remaining_stocks,
                 vehicle_usage,
-                time_limit_per_product // max(1, 10)  # Limite de temps par itération
+                iteration_time_limit
             )
             
             if not deliveries_made:
@@ -260,7 +271,8 @@ class MPVRPSolver:
         search_parameters.local_search_metaheuristic = (
             routing_enums_pb2.LocalSearchMetaheuristic.GUIDED_LOCAL_SEARCH
         )
-        search_parameters.time_limit.seconds = int(max(1, time_limit))
+        if time_limit is not None:
+            search_parameters.time_limit.seconds = int(max(1, time_limit))
         
         # Résoudre
         assignment = routing.SolveWithParameters(search_parameters)
@@ -476,9 +488,13 @@ class MPVRPSolver:
             route.total_transition_cost = total_transition
 
 
-def solve_instance(instance: Instance, time_limit: int = 60) -> Solution:
+def solve_instance(instance: Instance, time_limit: int = None) -> Solution:
     """
     Fonction utilitaire pour résoudre une instance.
+    
+    Args:
+        instance: L'instance à résoudre
+        time_limit: Limite de temps en secondes (None = pas de limite)
     """
     solver = MPVRPSolver(instance, time_limit)
     return solver.solve()

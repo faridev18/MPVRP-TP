@@ -18,13 +18,12 @@ from parser import parse_instance, validate_instance
 from solver import solve_instance
 from solution_writer import write_solution, format_solution_for_display, validate_solution_locally
 from api_client import verify_solution_file, print_verification_result
-from visualizer import plot_solution
 
 
 def solve_single_instance(
     instance_path: Path,
     output_path: Path = None,
-    time_limit: int = 60,
+    time_limit: int = None,
     verify: bool = False,
     api_url: str = "http://localhost:8000"
 ):
@@ -41,12 +40,15 @@ def solve_single_instance(
     # Valider l'instance
     print("\n2. Validation de l'instance...")
     if not validate_instance(instance):
-        print("⚠️ Instance invalide, tentative de résolution quand même...")
+        print("[ATTENTION] Instance invalide, tentative de resolution quand meme...")
     else:
-        print("✅ Instance valide")
+        print("[OK] Instance valide")
     
     # Résoudre
-    print(f"\n3. Résolution (limite: {time_limit}s)...")
+    if time_limit:
+        print(f"\n3. Résolution (limite: {time_limit}s)...")
+    else:
+        print("\n3. Résolution (sans limite de temps)...")
     solution = solve_instance(instance, time_limit)
     
     # Afficher la solution
@@ -56,9 +58,9 @@ def solve_single_instance(
     print("\n4. Validation locale...")
     is_valid, errors = validate_solution_locally(solution)
     if is_valid:
-        print("✅ Solution localement valide")
+        print("[OK] Solution localement valide")
     else:
-        print("❌ Solution localement invalide:")
+        print("[ERREUR] Solution localement invalide:")
         for e in errors:
             print(f"  - {e}")
     
@@ -69,14 +71,6 @@ def solve_single_instance(
     output_path.parent.mkdir(parents=True, exist_ok=True)
     write_solution(solution, output_path)
     print(f"\n5. Solution écrite dans: {output_path}")
-    
-    # Générer l'image de la solution
-    images_folder = instance_path.parent.parent / "images"
-    images_folder.mkdir(parents=True, exist_ok=True)
-    image_name = f"Sol_{instance_path.stem}.png"
-    image_path = images_folder / image_name
-    plot_solution(solution, save_path=image_path, show=False)
-    print(f"   Image sauvegardée: {image_path}")
     
     # Vérification via API
     if verify:
@@ -90,7 +84,9 @@ def solve_single_instance(
 def solve_batch(
     input_folder: Path,
     output_folder: Path = None,
-    time_limit: int = 60
+    time_limit: int = None,
+    verify: bool = False,
+    api_url: str = "https://mpvrp-cc.onrender.com"
 ):
     """Résout toutes les instances d'un dossier."""
     if output_folder is None:
@@ -100,6 +96,8 @@ def solve_batch(
     
     instance_files = sorted(input_folder.glob("*.dat"))
     print(f"Trouvé {len(instance_files)} instances dans {input_folder}")
+    if verify:
+        print(f"Vérification API activée: {api_url}")
     
     results = []
     
@@ -113,7 +111,8 @@ def solve_batch(
                 instance_path,
                 output_path,
                 time_limit,
-                verify=False
+                verify=verify,
+                api_url=api_url
             )
             results.append({
                 'instance': instance_path.name,
@@ -124,7 +123,7 @@ def solve_batch(
                 'time': solution.resolution_time
             })
         except Exception as e:
-            print(f"❌ Erreur: {e}")
+            print(f"[ERREUR] {e}")
             results.append({
                 'instance': instance_path.name,
                 'status': 'ERREUR',
@@ -140,9 +139,9 @@ def solve_batch(
     
     for r in results:
         if r['status'] == 'OK':
-            print(f"{r['instance']:<40} {'✅':<10} {r['cost']:>12.2f} {r['distance']:>12.2f} {r['time']:>7.2f}s")
+            print(f"{r['instance']:<40} {'OK':<10} {r['cost']:>12.2f} {r['distance']:>12.2f} {r['time']:>7.2f}s")
         else:
-            print(f"{r['instance']:<40} {'❌':<10} {r.get('error', 'Unknown error')}")
+            print(f"{r['instance']:<40} {'ERREUR':<10} {r.get('error', 'Unknown error')}")
     
     success = sum(1 for r in results if r['status'] == 'OK')
     print("-"*80)
@@ -168,8 +167,8 @@ def main():
     parser.add_argument(
         '--time-limit', '-t',
         type=int,
-        default=60,
-        help="Limite de temps en secondes (défaut: 60)"
+        default=None,
+        help="Limite de temps en secondes (par défaut: sans limite)"
     )
     
     parser.add_argument(
@@ -200,7 +199,7 @@ def main():
         # Mode batch
         input_folder = Path(args.batch)
         output_folder = Path(args.output_folder) if args.output_folder else None
-        solve_batch(input_folder, output_folder, args.time_limit)
+        solve_batch(input_folder, output_folder, args.time_limit, args.verify, args.api_url)
     
     elif args.instance:
         # Mode simple

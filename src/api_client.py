@@ -183,9 +183,9 @@ def print_verification_result(result: Dict[str, Any]):
     print("=" * 50)
     
     if result['feasible']:
-        print("✅ Solution VALIDE")
+        print("[OK] Solution VALIDE")
     else:
-        print("❌ Solution INVALIDE")
+        print("[ERREUR] Solution INVALIDE")
     
     if result['errors']:
         print("\nErreurs:")
