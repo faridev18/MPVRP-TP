@@ -1,106 +1,0 @@
-
-Instance format specification
-
-MPVRP-CC Team
-
-January 25, 2026
-
-
-
-1 File format
-
-Instances are stored in text files with the .dat extension.
-
-1.1 Naming convention
-The filename encodes the main characteristics of the instance:
-MPVRP_A_B_sC_dD_pE.dat
-
-Field	Description
-
-A Instance category: L for large, M for medium, S for small
-B Unique instance number (e.g., 001, 002)
-C Number of service stations (customers)
-D Number of depots (loading points)
-E Number of different product types
-
-
-
-2 Internal file structure
-
-The file is structured in sequential data blocks. Values are separated by spaces or tabs.
-
-2.1 UUID (line 1)
-The first line contains a unique v4 UUID generated for each instance:
-
-
-
-This identifier ensures global uniqueness of the instance and allows tracing its ori- gin.
-
-2.2 Global parameters (line 2)
-The second line defines the problem dimensions:
-
-Example: 3 2 1 20 5 means:
-• 3 product types to distribute
-• 2 depots (loading points)
-• 1 garage (vehicle base)
-• 20 service stations (customers)
-• 5 available vehicles
-
-2.3 Transition cost matrix
-This square matrix (size NbProducts × NbProducts) defines the cleaning cost required to switch from one product to another in the truck's tank.
-
-
-The value at row i and column j is the cost to switch from product i to product j. The diagonal is generally zero (no cost to keep the same product).
-
-2.4 Vehicle fleet
-Each line describes an available vehicle:
-
-
-2.5 Depots (loading points)
-Each line defines a depot:
-
-
-
-Field	Description
-
-ID	Unique vehicle identifier Capacity	Maximum transportable volume HomeGarage	ID of the assigned garage InitialProduct	Initial tank configuration
-
-
-• X, Y: Geographic coordinates
-• Stock_Pi: Available quantity for product i
-
-2.6 Garages (bases)
-Each line defines a garage:
-
-
-Garages serve only as departure and arrival points for routes.
-
-2.7 Service stations (customers)
-Each line defines a station and its needs:
-
-
-• Demand_Pi: Required quantity for product i
-• A demand of 0 means the station does not need this product.
-
-3 Complete example
-
-
-
-
-
-
-
-
-
-
-
-198.149.6256.826123.542.2 0 427823.5 38.3 1344 2350356.7 31.3 0 2319
-This example describes an instance with:
-
-• 2 products
-• 1 depot
-• 2 garages
-• 3 service stations
-• 2 vehicles
-
-

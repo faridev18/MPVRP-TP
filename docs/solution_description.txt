@@ -1,75 +1,0 @@
-
-Solution format specification
-
-MPVRP-CC Team
-
-January 25, 2026
-
-
-
-1 File format
-
-Solutions are stored in text files with the .dat extension. The filename must reference the instance being solved (e.g., Sol_MPVRP_...).
-
-2 File structure
-
-The file describes the routes vehicle by vehicle. For each vehicle used, the solution contains a block of 2 lines, separated by an empty line.
-
-2.1 Line 1: visit sequence
-
-
-This line starts with the vehicle ID and describes the path:
-• Garage: Start and end point (Node ID only).
-• Depot: Identified by square brackets [Qty] indicating quantity loaded.
-• Station: Identified by parentheses (Qty) indicating quantity delivered.
-Node IDs refer to their 1-based index in the instance file (e.g., loaded at Depot 1, deliv- ered to Station 2) and are not cumulative across types.
-
-2.2 Line 2: product sequence and costs
-
-
-
-This line indicates which product is transported at each step and the cumulative changeover cost.
-
-
-
-3Valid solution example1:1 - 1 [1344] - 2 (1344) - 11:0(0.0) - 0(0.0) - 0(0.0)2:1 - 1 [8947] - 1 (4278) - 2 (2350) - 3 (2319) - 12:1(0.0) - 1(0.0) - 1(0.0) - 1(0.0) - 1(0.0)
-In this example:
-• Vehicle 1 starts at garage 1, loads 1344 units at depot 1, delivers 1344 units to station 2, and returns to garage 1. It carries product 0 (cost 0.0).
-• Vehicle 2 starts at garage 1, loads 8947 units at depot 1, delivers to stations 1, 2,
-and 3, and returns to garage 1. It carries product 1 (cost 0.0).
-
-4 Solution metrics
-
-After all vehicle routes, the file ends with 6 lines of performance metrics:
-
-
-4.1 Line 1: number of vehicles used
-
-Number of vehicles with at least one delivery.
-
-4.2 Line 2: number of product changes
-
-
-Total number of product changes across the entire solution.
-
-4.3 Line 3: total transition cost
-
-
-Sum of all product changeover costs for all vehicles.
-
-4.4 Line 4: total distance
-
-
-Total distance traveled by the fleet (sum of Euclidean distances).
-
-4.5 Line 5: processor
-
-
-Model of the processor on which the solution was generated.
-
-4.6 Line 6: resolution time
-
-
-Time elapsed to generate the solution (in seconds). A valid solution must satisfy all the constraints.
-
-

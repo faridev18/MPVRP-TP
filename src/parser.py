@@ -1,6 +1,4 @@
-"""
-Parser pour les fichiers d'instance MPVRP-CC (.dat)
-"""
+
 from pathlib import Path
 from typing import Union
 from models import Instance, Vehicle, Depot, Garage, Station
